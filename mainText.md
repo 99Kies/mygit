@@ -1,3 +1,152 @@
+(包括项目的主要内容、计划目标、思路方法、组织实施、进度安排等)
+
+# 项目研究方案
+
 ## 主要内容
 
 项目小组利用Docker将FISCO BCOS区块链框架封装成镜像，我们以推动我校在区块链方向的发展为目的。
+
+
+
+
+
+
+
+# 项目研究条件及创新之处
+
+## 具备基础
+
+
+
+## 优势，创新点与风险
+
+### FISCO BCOS节点的特点
+
+#### 群组架构
+
+群组架构是FISCO BCOS 2.0众多新特性中的主线，创造灵感来源于人人都熟悉的群聊模式——群的建立非常灵活，几个人就可以快速拉个主题群进行交流。同一个人可以参与到自己感兴趣的多个群里，并行地收发信息。现有的群也可以继续增加成员。
+
+采用群组架构的网络中，根据业务场景的不同，可存在多个不同的账本，区块链节点可以根据业务关系选择群组加入，参与到对应账本的数据共享和共识过程中。该架构的特点是：
+
+- 各群组独立执行共识流程，由群组内参与者决定如何进行共识，一个群组内的共识不受其他群组影响，各群组拥有独立的账本，维护自己的交易事务和数据，使得各群组之间解除耦合独立运作，可以达成更好的隐私隔离；
+- 机构的节点只需部署一次，通过群组设置即可参与到不同的多方协作业务中，或将一个业务按用户、时间等维度分到各群组，群组架构可快速地平行扩展，在扩大了业务规模同时，极大简化了运维复杂度，降低管理成本。
+
+更多的群组介绍，请参考[群组架构设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/architecture/group.html)和[群组使用教程](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/group_use_cases.html)
+
+#### 分布式存储
+
+FISCO BCOS 2.0新增了对分布式数据存储的支持，节点可将数据存储在远端分布式系统中，克服了本地化数据存储的诸多限制。该方案有以下优点：
+
+- 支持多种存储引擎，选用高可用的分布式存储系统，可以支持数据简便快速地扩容；
+- 将计算和数据隔离，节点故障不会导致数据异常；
+- 数据在远端存储，数据可以在更安全的隔离区存储，这在很多场景中非常有意义；
+- 分布式存储不仅支持Key-Value形式，还支持SQL方式，使得业务开发更为简便；
+- 世界状态的存储从原来的MPT存储结构转为分布式存储，避免了世界状态急剧膨胀导致性能下降的问题；
+- 优化了数据存储的结构，更节约存储空间。
+
+同时，2.0版本仍然兼容1.0版本的本地存储模式。更多关于存储介绍，请参考[分布式存储操作手册](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/distributed_storage.html)
+
+#### 并行计算模型
+
+2.0版本中新增了合约交易的并行处理机制，进一步提升了合约的并发吞吐量。
+
+1.0版本以及大部分业界传统区块链平台，交易是被打包成一个区块，在一个区块中交易顺序串行执行的。 2.0版本基于预编译合约，实现一套并行交易处理模型，基于这个模型可以自定义交易互斥变量。 在区块执行过程中，系统将会根据交易互斥变量自动构建交易依赖关系图——DAG，基于DAG并行执行交易，最好情况下性能可提升数倍（取决于CPU核数）。
+
+更多并行计算模型的介绍，请参考并行交易的[设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/parallel/dag.html)和[使用手册](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/transaction_parallel.html)。
+
+#### 预编译合约
+
+FISCO BCOS 2.0提供预编译合约框架，支持采用C++编写合约，其优势是合约调用响应更快，运行速度更高，消耗资源更少，更易于并行计算，极大提升整个系统的效率。FISCO BCOS内置了多个系统级的合约，提供准入控制、权限管理、系统配置、CRUD式的数据存取等功能，这些功能天然集成在底层平台里，无需手动部署。
+
+FISCO BCOS提供标准化接口和示例，帮助用户进行二次开发，便于用户编写高性能的业务合约，并方便地部署到FISCO BCOS里运行。预编译合约框架兼容EVM引擎，形成了“双引擎”架构，熟悉EVM引擎的用户可以选择将Solidity合约和预编译合约结合，在满足业务逻辑的同时获得巨大的效率提升。
+
+另外，还有类似CRUD操作等也由预编译合约实现，更多预编译合约的介绍，请参考[预编译设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/virtual_machine/precompiled.html)和[预编译合约开发文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/smart_contract.html#id2)
+
+#### CRUD合约
+
+FISCO BCOS 2.0新增符合CRUD接口的合约接口规范，简化了将主流的面向SQL设计的商业应用迁移到区块链上的成本。其好处显而易见：
+
+- 与传统业务开发模式类似，降低了合约开发学习成本；
+- 合约只需关心核心逻辑，存储与计算分离，方便合约升级；
+- CRUD底层逻辑基于预编译合约实现，数据存储采用分布式存储，效率更高；
+
+同时，2.0版本仍然兼容1.0版本的合约，更多关于CRUD接口的介绍，请参考[使用CRUD接口](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/smart_contract.html#crud)。
+
+#### 控制台
+
+FISCO BCOS 2.0新增控制台，作为FISCO BCOS 2.0的交互式客户端工具。
+
+控制台安装简单便捷，简单配置后即可和链节点进行通信，拥有丰富的命令和良好的交互体验，用户可以通过控制台查询区块链状态、读取和修改配置、管理区块链节点、部署并调用合约。控制台给用户管理、开发、运维区块链带来了巨大的便利，降低了操作繁琐性和使用门槛。
+
+相比于传统的nodejs等脚本工具，控制台安装简单、使用体验更好。详细请查看[控制台使用手册](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/console.html)。
+
+#### 虚拟机
+
+2.0版本引入了最新的以太坊虚拟机版本，支持Solidity 0.5版本。同时，引入了EVMC扩展框架，支持扩展不同虚拟机引擎。 底层内部集成支持interpreter虚拟机，未来可扩展支持WASM/JIT等虚拟机。
+
+更多关于虚拟机的介绍，请参考[虚拟机设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/virtual_machine/index.html)
+
+#### 密钥管理服务
+
+2.0版本对落盘加密进行了重塑升级，开启落盘加密功能时，依赖KeyManager服务进行密钥管理，安全性更强。
+
+KeyManager在Github开源发布，节点与KeyManager的交互协议是开放的，支持机构设计实现符合自身密钥管理规范的KeyManager服务，比如采用硬件加密机技术。 该部分更详细的文档请参考[使用文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/manual/storage_security.html)和[设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/features/storage_security.html)
+
+#### 准入控制
+
+2.0版本对准入机制进行了重塑升级，包括网络准入机制和群组准入机制，在不同维度对链和数据访问进行安全控制。
+
+采用新的权限控制体系，基于表进行访问权限的设计，另外还支持CA黑名单机制，可以实现对作恶/故障节点的屏蔽。 详情请查看[准入机制设计文档](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/security_control/index.html)
+
+#### 异步事件
+
+2.0版本同时支持交易上链异步通知、区块上链异步通知以及自定义的AMOP消息通知等机制。
+
+#### 模块重塑
+
+2.0版本对核心模块进行升级重塑，进行模块化的单元测试和端对端集成测试，支持自动化持续集成和持续部署。
+
+### FISCO BCOS Python框架的特点
+
+Python SDK 提供了访问 FISCO BCOS 节点的Python API，支持节点状态查询、部署和调用合约等功能，基于Python SDK可快速开发区块链应用，目前支持 FISCO BCOS 2.0+
+
+- 提供调用FISCO BCOS JSON-RPC的Python API
+- 支持使用 [Channel协议](https://fisco-bcos-documentation.readthedocs.io/zh_CN/latest/docs/design/protocol_description.html#channelmessage) 与FISCO BCOS节点通信，保证节点与SDK安全加密通信的同时，可接收节点推送的消息。
+- 支持交易解析功能：包括交易输入、交易输出、Event Log等ABI数据的拼装和解析
+- 支持合约编译，将 `sol` 合约编译成 `abi` 和 `bin` 文件
+- 支持基于keystore的账户管理
+- 支持合约历史查询
+
+### 容器化的优点
+
+#### 持续部署与测试 
+
+容器消除了线上线下的环境差异，保证了应用生命周期的环境一致性标准化。开发人员使用镜像实现标准开发环境的构建，开发完成后通过封装着完整环境和应用的镜像进行迁移，由此，测试和运维人员可以直接部署软件镜像来进行测试和发布，大大简化了持续集成、测试和发布的过程。
+
+#### 跨云平台支持
+
+容器带来的最大好处之一就是其适配性，越来越多的云平台都支持容器，用户再也无需担心受到云平台的捆绑，同时也让应用多平台混合部署成为可能。目前支持容器的IaaS云平台包括但不限于亚马逊云平台(AWS)、 Google云平台(GCP)微软云平台( Azure)、 Open Stack等，还包括如Chef、 Puppet、 Ansible等配置管理工具。
+
+#### 环境标准化和版本控制
+
+基于容器提供的环境一致性和标准化，你可以使用Gt等工具对容器镜像进行版本控制，相比基于代码的版本控制来说，你还能够对整个应用运行环境实现版本控制，一旦出现故障可以快速回滚。相比以前的虚拟机镜像，容器压缩和备份速度更快，镜像启动也像启动一个普通进程一样快速。
+
+#### 高资源利用率与隔离
+
+
+
+容器容器没有管理程序的额外开销，与底层共享操作系统，性能更加优良，系统负载更低，在同等条件下可以运行更多的应用实例，可以更充分地利用系统资源。同时，容器拥有不错的资源隔离与限制能力，可以精确地对应用分配CPU、内存等资源，保证了应用间不会相互影响。
+
+#### 容器跨平台性与镜像
+
+ Linux容器虽然早在 Linux2.6版本内核已经存在，但是缺少容器的跨平台性，难以推广。容器在原有 Linux容器的基础上进行大胆革新，为容器设定了一整套标准化的配置方法，将应用及其依赖的运行环境打包成镜像，真正实现了“构建次，到处运行”的理念，大大提高了容器的跨平台性。
+
+#### 易于理解且易用
+
+Docker的英文原意是处理集装箱的码头工人，标志是鲸鱼运送一大堆集装箱，集装箱就是容器，生动好记，易于理解。一个开发者可以在15分钟之内人门Docker并进行安装和部署，这是容器使用史上的一次飞跃。因为它的易用性，有更多的人开始关注容器技术，加速了容器标准化的步伐。
+
+#### 应用镜像仓库
+
+Docker官方构建了一个镜像仓库，组织和管理形式类似于 Github，其上已累积了成千上万的镜像。因为 Docker的跨平台适配性，相当于为用户提供了一个非常有用的应用商店，所有人都可以自由地下载微服务组件，这为开发者提供了巨大便利。
+
+
